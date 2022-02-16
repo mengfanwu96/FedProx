@@ -12,9 +12,18 @@ class Server(BaseFedarated):
         self.inner_opt = tf.train.GradientDescentOptimizer(params['learning_rate'])
         super(Server, self).__init__(params, learner, dataset)
 
+    def print_models(self,):
+        print("General client model")
+        print(self.client_model)
+        print("Local models")
+        for c in self.clients:
+            print(c.model)
+
     def train(self):
         '''Train using Federated Proximal'''
         print('Training with {} workers ---'.format(self.clients_per_round))
+
+
 
         for i in range(self.num_rounds):
             # test model
@@ -25,6 +34,8 @@ class Server(BaseFedarated):
                 tqdm.write('At round {} accuracy: {}'.format(i, np.sum(stats[3]) * 1.0 / np.sum(stats[2])))  # testing accuracy
                 tqdm.write('At round {} training accuracy: {}'.format(i, np.sum(stats_train[3]) * 1.0 / np.sum(stats_train[2])))
                 tqdm.write('At round {} training loss: {}'.format(i, np.dot(stats_train[4], stats_train[2]) * 1.0 / np.sum(stats_train[2])))
+
+
 
             indices, selected_clients = self.select_clients(i, num_clients=self.clients_per_round)  # uniform sampling
             np.random.seed(i)
@@ -46,6 +57,11 @@ class Server(BaseFedarated):
                 self.metrics.update(rnd=i, cid=c.id, stats=stats)
 
             # update models
+            print("General client model")
+            print(self.client_model)
+            print("Local models")
+            for c in self.clients:
+                print(c.model)
             self.latest_model = self.aggregate(csolns)
 
         # final test model
